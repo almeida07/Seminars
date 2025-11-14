@@ -1,302 +1,310 @@
 #!/usr/bin/env python3
-from __future__ import annotations
-
 import json
 import re
-from dataclasses import dataclass, asdict
-from datetime import datetime, date, time
-from typing import List, Optional
+from datetime import datetime, date
+from typing import List, Dict
 from urllib.parse import urljoin
 
 import requests
 from bs4 import BeautifulSoup
 
+IMFS_URL = "https://www.imfs-frankfurt.de/veranstaltungen/alle-kommenden-veranstaltungen"
 
-@dataclass
-class Event:
-    series: str
-    source: str          # URL of the page we scraped from
-    title: str           # talk title / topic
-    speaker: str
-    datetime: datetime
-    location: str
-    extra_info: Optional[str] = None  # e.g. detail URL
+SEMINARS = [
+    {
+        "id": "finance_seminar",
+        "name": "Finance Seminar Series",
+        "page": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/finance/seminar/finance-seminar-series/seminar-calendar.html",
+        "location": "HoF E.01 / Deutsche Bank room",
+        "time_info": "Tuesdays 12:00–13:15",
+    },
+    {
+        "id": "finance_brownbag",
+        "name": "Finance Brown Bag",
+        "page": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/finance/seminar/brown-bag/finance-brown-bag.html",
+        "location": "HoF E.20 / DZ Bank room",
+        "time_info": "Wednesdays 14:00–15:00",
+    },
+    {
+        "id": "mm_amos",
+        "name": "AMOS Seminar (Management & Microeconomics)",
+        "page": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/mm/forschung/forschungskolloquien/amos.html",
+        "location": "RuW 4.201",
+        "time_info": "Usually Wednesdays 14:15",
+    },
+    {
+        "id": "mm_brownbag",
+        "name": "Management & Microeconomics Brown Bag",
+        "page": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/mm/forschung/forschungskolloquien/brown-bag-seminar.html",
+        "location": "RuW 4.201",
+        "time_info": "Thursdays 12:30–13:30",
+    },
+    {
+        "id": "qep",
+        "name": "Quantitative Economic Policy Seminar",
+        "page": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/eq/seminars/quantitative-economic-policy-seminar.html",
+        "location": "RuW 4.202",
+        "time_info": "",
+    },
+    {
+        "id": "macro_seminar",
+        "name": "Macro Seminar",
+        "page": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/money-and-macroeconomics/macro-seminar.html",
+        "location": "HoF E.01 / Deutsche Bank room",
+        "time_info": "Tuesdays 14:15–15:30",
+    },
+    {
+        "id": "macro_brownbag",
+        "name": "Money & Macro Brown Bag",
+        "page": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/money-and-macroeconomics/brown-bag-seminar.html",
+        "location": "",
+        "time_info": "",
+    },
+]
+
+MONTH_MAP = {
+    "jan": 1,
+    "january": 1,
+    "feb": 2,
+    "february": 2,
+    "mar": 3,
+    "mär": 3,
+    "maer": 3,
+    "maerz": 3,
+    "märz": 3,
+    "march": 3,
+    "apr": 4,
+    "april": 4,
+    "may": 5,
+    "mai": 5,
+    "jun": 6,
+    "june": 6,
+    "jul": 7,
+    "july": 7,
+    "aug": 8,
+    "august": 8,
+    "sep": 9,
+    "sept": 9,
+    "september": 9,
+    "oct": 10,
+    "okt": 10,
+    "october": 10,
+    "nov": 11,
+    "november": 11,
+    "dec": 12,
+    "dez": 12,
+    "december": 12,
+}
 
 
-# ---------- Generic helpers ----------
+def parse_date(date_str: str) -> date:
+    """Handle all the weird date formats across the seminar pages."""
+    s = date_str.strip()
 
-def fetch_soup(url: str) -> BeautifulSoup:
-    print(f"Scraping {url}")
-    resp = requests.get(url, timeout=20)
+    # 04 Nov 2025
+    m = re.match(r"^(\d{1,2})\s+([A-Za-zÄÖÜäöü\.]+)\s+(\d{4})$", s)
+    if m:
+        day = int(m.group(1))
+        month_name = m.group(2).strip(".").lower()
+        year = int(m.group(3))
+        month = MONTH_MAP.get(month_name)
+        if not month:
+            raise ValueError(f"Unknown month: {month_name} in {date_str}")
+        return datetime(year, month, day).date()
+
+    # Nov 18, 2025
+    m = re.match(r"^([A-Za-zÄÖÜäöü\.]+)\s+(\d{1,2}),\s*(\d{4})$", s)
+    if m:
+        month_name = m.group(1).strip(".").lower()
+        day = int(m.group(2))
+        year = int(m.group(3))
+        month = MONTH_MAP.get(month_name)
+        if not month:
+            raise ValueError(f"Unknown month: {month_name} in {date_str}")
+        return datetime(year, month, day).date()
+
+    # 27. November 2025
+    m = re.match(r"^(\d{1,2})\.\s*([A-Za-zÄÖÜäöü\.]+)\s+(\d{4})$", s)
+    if m:
+        day = int(m.group(1))
+        month_name = m.group(2).strip(".").lower()
+        year = int(m.group(3))
+        month = MONTH_MAP.get(month_name)
+        if not month:
+            raise ValueError(f"Unknown month: {month_name} in {date_str}")
+        return datetime(year, month, day).date()
+
+    # 27.11.2025
+    m = re.match(r"^(\d{1,2})\.(\d{1,2})\.(\d{4})$", s)
+    if m:
+        day = int(m.group(1))
+        month = int(m.group(2))
+        year = int(m.group(3))
+        return datetime(year, month, day).date()
+
+    # Fallback to ISO-ish
+    for fmt in ("%Y-%m-%d", "%d.%m.%Y"):
+        try:
+            return datetime.strptime(s, fmt).date()
+        except ValueError:
+            pass
+
+    raise ValueError(f"Unrecognized date format: {date_str}")
+
+
+def fetch(url: str) -> BeautifulSoup:
+    resp = requests.get(url, timeout=30)
     resp.raise_for_status()
     return BeautifulSoup(resp.text, "html.parser")
 
 
-def parse_any_date(date_str: str) -> Optional[date]:
-    """
-    Handle things like:
-      - 04 Nov 2025
-      - 19 Nov 2025
-      - Nov 18, 2025
-      - 27. November 2025
-    """
-    # Normalize punctuation and whitespace
-    s = re.sub(r"[.,]", " ", date_str)
-    s = re.sub(r"\s+", " ", s).strip()
-
-    # Try several plausible formats
-    fmt_candidates = [
-        "%d %b %Y",
-        "%d %B %Y",
-        "%b %d %Y",
-        "%B %d %Y",
-    ]
-    for fmt in fmt_candidates:
-        try:
-            return datetime.strptime(s, fmt).date()
-        except ValueError:
-            continue
-    print(f"  [warn] Could not parse date '{date_str}' (normalized '{s}')")
-    return None
-
-
-def event_to_json_dict(e: Event) -> dict:
-    d = asdict(e)
-    d["datetime"] = e.datetime.isoformat()
-    return d
-
-
-# ---------- TYPO3 table-based seminars ----------
-
-def scrape_typo3_table_series(
-    url: str,
-    series_name: str,
-    default_time: time,
-    default_location: str,
-) -> List[Event]:
-    """
-    Scrape a TYPO3 seminar page that uses:
-      <table class="table table-striped dataTable data-table-event no-footer" ...>
-    with columns: Date | Speaker | Topic
-    """
-    soup = fetch_soup(url)
+def scrape_wiwi_table(cfg: Dict) -> List[Dict]:
+    """Generic scraper for all old.wiwi.uni-frankfurt.de seminar tables."""
+    url = cfg["page"]
+    soup = fetch(url)
     table = soup.select_one("table.data-table-event")
+    events: List[Dict] = []
+
     if not table:
-        # e.g. Money & Macro Brown Bag currently inactive => "Keine Ereignisse gefunden."
-        print(f"  [info] No data-table-event found on {url}")
-        return []
+        return events
 
-    events: List[Event] = []
-    tbody = table.find("tbody") or table
-    for row in tbody.find_all("tr"):
-        date_cell = row.find("td", class_="dtstart-container")
-        speaker_cell = row.find("td", class_="speaker")
-        topic_cell = row.find("td", class_="summary")
-
-        if not (date_cell and speaker_cell and topic_cell):
+    for tr in table.select("tbody tr"):
+        tds = tr.find_all("td")
+        if not tds:
             continue
 
-        raw_date = date_cell.get_text(strip=True)
-        dt_date = parse_any_date(raw_date)
-        if not dt_date:
+        # Date
+        date_td = tr.find("td", class_="dtstart-container") or tds[0]
+        date_text = date_td.get_text(strip=True)
+        if not date_text:
             continue
 
-        speaker = speaker_cell.get_text(" ", strip=True)
+        try:
+            d = parse_date(date_text)
+        except Exception:
+            # Skip rows with strange dates (usually non-event rows)
+            continue
 
-        # Topic text + link (if present)
-        topic_link = topic_cell.find("a")
-        if topic_link:
-            title = topic_link.get_text(" ", strip=True)
-            detail_href = topic_link.get("href")
-            detail_url = urljoin(url, detail_href) if detail_href else None
-        else:
-            title = topic_cell.get_text(" ", strip=True)
-            detail_url = None
+        # Speaker
+        speaker_td = tr.find("td", class_="speaker") or (tds[1] if len(tds) > 1 else None)
+        speaker = speaker_td.get_text(" ", strip=True) if speaker_td else ""
 
-        dt = datetime.combine(dt_date, default_time)
+        # Title + details link
+        summary_td = tr.find("td", class_="summary") or (tds[2] if len(tds) > 2 else None)
+        title = ""
+        details_url = url
+        if summary_td:
+            link = summary_td.find("a")
+            if link:
+                title = link.get_text(" ", strip=True)
+                href = link.get("href")
+                if href:
+                    details_url = urljoin(url, href)
+            else:
+                title = summary_td.get_text(" ", strip=True)
+
+        if not title:
+            # Typically "Keine Ereignisse gefunden."
+            continue
 
         events.append(
-            Event(
-                series=series_name,
-                source=url,
-                title=title,
-                speaker=speaker,
-                datetime=dt,
-                location=default_location,
-                extra_info=detail_url,
-            )
+            {
+                "seminar_id": cfg["id"],
+                "seminar_name": cfg["name"],
+                "seminar_page": cfg["page"],   # <- used by "Open seminar page" button
+                "title": title,
+                "speaker": speaker,
+                "date": d.isoformat(),
+                "raw_date": date_text,
+                "time_info": cfg.get("time_info", ""),
+                "location": cfg.get("location", ""),
+                "details_url": details_url,
+                "source": "Goethe University Frankfurt",
+            }
         )
 
     return events
 
 
-# ---------- IMFS “Alle kommenden Veranstaltungen” ----------
-
-IMFS_URL = "https://www.imfs-frankfurt.de/veranstaltungen/alle-kommenden-veranstaltungen"
-
-
-def scrape_imfs() -> List[Event]:
-    """
-    Very simple text-based parser for the IMFS "Alle kommenden Veranstaltungen" page.
-    Assumes the first event block is the IMFS Working Lunch (like in your current output).
-    """
-    soup = fetch_soup(IMFS_URL)
+def scrape_imfs() -> List[Dict]:
+    """Very lightweight scraper for IMFS upcoming events page."""
+    soup = fetch(IMFS_URL)
     text = soup.get_text("\n")
-    lines = [ln.strip() for ln in text.splitlines()]
-    lines = [ln for ln in lines if ln]
+    lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
+    events: List[Dict] = []
 
-    # Find the "IMFS Working Lunch" block
-    try:
-        idx = lines.index("IMFS Working Lunch")
-    except ValueError:
-        print("  [warn] 'IMFS Working Lunch' not found on IMFS page")
-        return []
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        # Pick up "IMFS Working Lunch" / "Policy Lecture" blocks
+        if "IMFS Working Lunch" in line or "Policy Lecture" in line:
+            block: List[str] = []
+            j = i + 1
+            while j < len(lines) and lines[j]:
+                block.append(lines[j])
+                j += 1
 
-    # Heuristic: expect the following structure
-    # idx      : "IMFS Working Lunch"
-    # idx + 1  : speaker line
-    # idx + 2  : title line (quoted or not)
-    # idx + 3  : date line, e.g. "27. November 2025"
-    # idx + 4  : time line, e.g. "12:30-13:30 Uhr"
-    # idx + 5+ : location lines until something like "Bitte melden Sie sich ..."
-    try:
-        speaker_line = lines[idx + 1]
-        title_line = lines[idx + 2].strip('"“”')
-        date_line = lines[idx + 3]
-        time_line = lines[idx + 4]
-    except IndexError:
-        print("  [warn] IMFS page structure changed (too few lines after heading)")
-        return []
+            if len(block) >= 4:
+                speaker = block[0]
+                talk_title = block[1].strip('“”"')
+                date_str = block[2]
+                time_line = block[3]
+                location_lines = block[4:7] if len(block) > 4 else []
+                location = ", ".join(location_lines)
 
-    dt_date = parse_any_date(date_line)
-    if not dt_date:
-        return []
+                try:
+                    d = parse_date(date_str)
+                except Exception:
+                    i = j
+                    continue
 
-    # Try to extract start time from the time line
-    m = re.search(r"(\d{1,2}:\d{2})", time_line)
-    if m:
-        try:
-            dt_time = datetime.strptime(m.group(1), "%H:%M").time()
-        except ValueError:
-            dt_time = time(12, 30)
-    else:
-        dt_time = time(12, 30)  # fallback
+                events.append(
+                    {
+                        "seminar_id": "imfs",
+                        "seminar_name": "IMFS Working Lunch / Policy Lecture",
+                        "seminar_page": IMFS_URL,  # <- used by "Open seminar page" button
+                        "title": talk_title,
+                        "speaker": speaker,
+                        "date": d.isoformat(),
+                        "raw_date": date_str,
+                        "time_info": time_line,
+                        "location": location,
+                        "details_url": IMFS_URL,
+                        "source": "IMFS Frankfurt",
+                    }
+                )
+            i = j
+        else:
+            i += 1
 
-    # Location = the next few lines until "Bitte melden" or another heading
-    location_lines: List[str] = []
-    for ln in lines[idx + 5 :]:
-        if ln.startswith("Bitte melden") or ln.startswith("###") or ln.startswith("Veranstaltungen"):
-            break
-        location_lines.append(ln)
-    location = ", ".join(location_lines) if location_lines else "House of Finance, Goethe-Universität Frankfurt"
+    return events
 
-    dt = datetime.combine(dt_date, dt_time)
-
-    event = Event(
-        series="IMFS Working Lunch",
-        source=IMFS_URL,
-        title=title_line,
-        speaker=speaker_line,
-        datetime=dt,
-        location=location,
-        extra_info=None,
-    )
-    return [event]
-
-
-# ---------- Main orchestration ----------
 
 def main() -> None:
-    today = date.today()
+    all_events: List[Dict] = []
 
-    all_events: List[Event] = []
+    # Wiwi seminar tables
+    for cfg in SEMINARS:
+        all_events.extend(scrape_wiwi_table(cfg))
 
-    # 1) Finance Seminar Series (Tuesdays 12:00–13:15, HoF E.01 Deutsche Bank)
-    all_events.extend(
-        scrape_typo3_table_series(
-            url="https://www.old.wiwi.uni-frankfurt.de/abteilungen/finance/seminar/finance-seminar-series/seminar-calendar.html",
-            series_name="Finance Seminar Series",
-            default_time=time(12, 0),
-            default_location="House of Finance, HoF E.01 (Deutsche Bank)",
-        )
-    )
-
-    # 2) Finance Brown Bag (Wednesdays 14:00–15:00, DZ Bank HoF E.20)
-    all_events.extend(
-        scrape_typo3_table_series(
-            url="https://www.old.wiwi.uni-frankfurt.de/abteilungen/finance/seminar/brown-bag/finance-brown-bag.html",
-            series_name="Finance Brown Bag",
-            default_time=time(14, 0),
-            default_location="DZ Bank, HoF E.20",
-        )
-    )
-
-    # 3) AMOS – Applied Microeconomics and Organization Seminar (Wed 14:15, RuW 4.201)
-    all_events.extend(
-        scrape_typo3_table_series(
-            url="https://www.old.wiwi.uni-frankfurt.de/abteilungen/mm/forschung/forschungskolloquien/amos.html",
-            series_name="AMOS Seminar",
-            default_time=time(14, 15),
-            default_location="RuW 4.201",
-        )
-    )
-
-    # 4) MM Brown Bag Seminar (Thursdays 12:30–13:30, RuW 4.201)
-    all_events.extend(
-        scrape_typo3_table_series(
-            url="https://www.old.wiwi.uni-frankfurt.de/abteilungen/mm/forschung/forschungskolloquien/brown-bag-seminar.html",
-            series_name="MM Brown Bag Seminar",
-            default_time=time(12, 30),
-            default_location="RuW 4.201",
-        )
-    )
-
-    # 5) Quantitative Economic Policy Seminar (QEP) – German page
-    all_events.extend(
-        scrape_typo3_table_series(
-            url="https://www.old.wiwi.uni-frankfurt.de/abteilungen/eq/seminars/quantitative-economic-policy-seminar.html",
-            series_name="Quantitative Economic Policy Seminar (QEP)",
-            default_time=time(16, 0),  # time not stated precisely; adjust if needed
-            default_location="RuW 4.202",
-        )
-    )
-
-    # 6) Macroeconomics Seminar (Money and Macroeconomics, Tuesdays 14:15–15:30, HoF E.01)
-    all_events.extend(
-        scrape_typo3_table_series(
-            url="https://www.old.wiwi.uni-frankfurt.de/abteilungen/money-and-macroeconomics/macro-seminar.html",
-            series_name="Macroeconomics Seminar",
-            default_time=time(14, 15),
-            default_location="House of Finance, HoF E.01 (Deutsche Bank)",
-        )
-    )
-
-    # 7) Money & Macro Brown Bag – this page is currently “inactive”, but we call it anyway;
-    #    scrape_typo3_table_series will just return [] if there is no table.
-    all_events.extend(
-        scrape_typo3_table_series(
-            url="https://www.old.wiwi.uni-frankfurt.de/abteilungen/money-and-macroeconomics/brown-bag-seminar.html",
-            series_name="Money and Macro Brown Bag Seminar",
-            default_time=time(12, 30),
-            default_location="House of Finance / Money and Macroeconomics",
-        )
-    )
-
-    # 8) IMFS – Alle kommenden Veranstaltungen
+    # IMFS
     all_events.extend(scrape_imfs())
 
-    # Filter to upcoming events only
-    upcoming = [ev for ev in all_events if ev.datetime.date() >= today]
+    # De-duplicate (same seminar + title + date)
+    seen = set()
+    unique_events: List[Dict] = []
+    for ev in all_events:
+        key = (ev["seminar_id"], ev["title"], ev["date"])
+        if key in seen:
+            continue
+        seen.add(key)
+        unique_events.append(ev)
 
-    # Sort by date & time
-    upcoming.sort(key=lambda e: e.datetime)
+    # Sort by date (string ISO "YYYY-MM-DD" works lexicographically)
+    unique_events.sort(key=lambda e: e["date"])
 
-    # Write JSON
-    data = [event_to_json_dict(e) for e in upcoming]
     with open("events.json", "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
-
-    print(f"Wrote {len(upcoming)} events to events.json")
+        json.dump(unique_events, f, indent=2, ensure_ascii=False)
 
 
 if __name__ == "__main__":
