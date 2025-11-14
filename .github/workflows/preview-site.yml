@@ -52,7 +52,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     environment:
-      name: Preview website
+      name: Preview website (${{ github.event.pull_request.head.ref || github.ref_name }})
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
