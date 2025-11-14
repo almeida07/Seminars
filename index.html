@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Goethe Econ – Seminar Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-alt: #020617;
+      --card: #020617;
+      --accent: #38bdf8;
+      --accent-soft: rgba(56, 189, 248, 0.1);
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --border: #1f2937;
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #1f2937 0, #020617 40%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 1100px;
+      background: linear-gradient(145deg, #020617, #020617f0);
+      border-radius: 24px;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      box-shadow:
+        0 30px 80px rgba(15, 23, 42, 0.9),
+        0 0 0 1px rgba(15, 23, 42, 0.9);
+      padding: 1.75rem 1.75rem 2.25rem;
+      backdrop-filter: blur(16px);
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1rem;
+    }
+
+    header h1 {
+      font-size: 1.5rem;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    header h1 span.logo-dot {
+      display: inline-flex;
+      width: 0.85rem;
+      height: 0.85rem;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 0, #f9fafb, #22d3ee 45%, #0ea5e9 75%);
+      box-shadow:
+        0 0 0 3px rgba(56, 189, 248, 0.2),
+        0 0 15px rgba(56, 189, 248, 0.7);
+    }
+
+    header p {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      margin-bottom: 1.25rem;
+    }
+
+    .controls-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .pill {
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      padding: 0.35rem 0.75rem;
+      font-size: 0.8rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(15, 23, 42, 0.95);
+    }
+
+    .pill-label {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    select,
+    input[type="search"] {
+      background: #020617;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.35rem 0.75rem;
+      font-size: 0.85rem;
+      outline: none;
+      min-width: 10rem;
+    }
+
+    select:focus,
+    input[type="search"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.4);
+    }
+
+    input[type="search"] {
+      min-width: 14rem;
+    }
+
+    .badge {
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      color: var(--muted);
+    }
+
+    .badge-series {
+      border-color: rgba(56, 189, 248, 0.5);
+      color: #e0f2fe;
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .summary {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+      display: flex;
+      justify-content: space-between;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .summary strong {
+      color: #e5e7eb;
+    }
+
+    .events {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.75rem;
+    }
+
+    @media (min-width: 750px) {
+      .events {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      }
+    }
+
+    .event-card {
+      position: relative;
+      border-radius: var(--radius);
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      background:
+        radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.15), transparent 55%),
+        linear-gradient(145deg, rgba(15, 23, 42, 0.97), rgba(15, 23, 42, 0.98));
+      padding: 0.85rem 0.9rem 0.9rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+      overflow: hidden;
+    }
+
+    .event-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      pointer-events: none;
+    }
+
+    .event-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 0.75rem;
+    }
+
+    .event-date {
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: #e5e7eb;
+    }
+
+    .event-time {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .event-title {
+      margin: 0;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #f9fafb;
+    }
+
+    .event-speaker {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .event-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem 0.6rem;
+      align-items: center;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .event-meta span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .event-meta svg {
+      width: 0.85rem;
+      height: 0.85rem;
+      opacity: 0.72;
+    }
+
+    a.event-link {
+      margin-top: 0.2rem;
+      font-size: 0.78rem;
+      color: #bae6fd;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.2rem;
+    }
+
+    a.event-link span.chevron {
+      font-size: 0.8em;
+      transform: translateY(1px);
+    }
+
+    a.event-link:hover {
+      text-decoration: underline;
+    }
+
+    .empty-state {
+      padding: 1.5rem;
+      border-radius: 1rem;
+      border: 1px dashed var(--border);
+      background: rgba(15, 23, 42, 0.8);
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .tag-pill {
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      font-size: 0.7rem;
+      background: rgba(15, 23, 42, 0.8);
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <div>
+        <h1><span class="logo-dot"></span>Goethe Econ Seminars</h1>
+        <p>Upcoming research seminars &amp; brown-bags across Finance, Macro, EQ, MM &amp; IMFS.</p>
+      </div>
+      <div class="badge">
+        Auto-updated from department pages
+      </div>
+    </header>
+
+    <section class="controls">
+      <div class="controls-group">
+        <span class="pill">
+          <span class="pill-label">Series</span>
+          <select id="seriesFilter">
+            <option value="all">All series</option>
+          </select>
+        </span>
+
+        <span class="pill">
+          <span class="pill-label">Search</span>
+          <input
+            id="searchInput"
+            type="search"
+            placeholder="Speaker, title, series, location..."
+            autocomplete="off"
+          />
+        </span>
+      </div>
+
+      <div class="controls-group">
+        <span class="pill">
+          <span class="pill-label">Sort</span>
+          <select id="sortOrder">
+            <option value="time">Soonest first</option>
+            <option value="series">By series, then time</option>
+          </select>
+        </span>
+      </div>
+    </section>
+
+    <div class="summary">
+      <span id="summaryCount">Loading events…</span>
+      <span id="summaryNext"></span>
+    </div>
+
+    <section id="events" class="events"></section>
+
+    <div class="empty-state" id="emptyState" style="display:none;">
+      No matching events. Try clearing filters or broadening your search.
+    </div>
+  </main>
+
+  <script>
+    const state = {
+      events: [],
+      filtered: [],
+      series: new Set(),
+      seriesFilter: "all",
+      searchQuery: "",
+      sortOrder: "time",
+    };
+
+    function parseDate(iso) {
+      return new Date(iso);
+    }
+
+    function formatDateTime(iso) {
+      const d = parseDate(iso);
+      if (Number.isNaN(d.getTime())) return { date: iso, time: "" };
+
+      const date = d.toLocaleDateString("de-DE", {
+        weekday: "short",
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      });
+      const time = d.toLocaleTimeString("de-DE", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      return { date, time };
+    }
+
+    function applyFilters() {
+      const { events, seriesFilter, searchQuery, sortOrder } = state;
+      const q = searchQuery.trim().toLowerCase();
+
+      let filtered = events.filter((e) => {
+        if (seriesFilter !== "all" && e.series !== seriesFilter) return false;
+        if (!q) return true;
+
+        const haystack = [
+          e.series,
+          e.speaker,
+          e.title,
+          e.location,
+          e.extra_info,
+          e.raw,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+
+        return haystack.includes(q);
+      });
+
+      if (sortOrder === "time") {
+        filtered.sort(
+          (a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime()
+        );
+      } else if (sortOrder === "series") {
+        filtered.sort((a, b) => {
+          const s = a.series.localeCompare(b.series);
+          if (s !== 0) return s;
+          return new Date(a.datetime).getTime() - new Date(b.datetime).getTime();
+        });
+      }
+
+      state.filtered = filtered;
+      render();
+    }
+
+    function render() {
+      const eventsEl = document.getElementById("events");
+      const emptyEl = document.getElementById("emptyState");
+      const summaryCount = document.getElementById("summaryCount");
+      const summaryNext = document.getElementById("summaryNext");
+
+      eventsEl.innerHTML = "";
+
+      if (!state.filtered.length) {
+        emptyEl.style.display = "block";
+        summaryCount.textContent = "No upcoming events";
+        summaryNext.textContent = "";
+        return;
+      } else {
+        emptyEl.style.display = "none";
+      }
+
+      summaryCount.textContent = `${state.filtered.length} upcoming event${
+        state.filtered.length === 1 ? "" : "s"
+      }`;
+
+      const next = state.filtered[0];
+      if (next) {
+        const { date, time } = formatDateTime(next.datetime);
+        summaryNext.textContent = `Next: ${date}${
+          time ? " · " + time : ""
+        } · ${next.speaker || ""} (${next.series})`;
+      } else {
+        summaryNext.textContent = "";
+      }
+
+      for (const e of state.filtered) {
+        const { date, time } = formatDateTime(e.datetime);
+        const card = document.createElement("article");
+        card.className = "event-card";
+
+        const header = document.createElement("div");
+        header.className = "event-header";
+
+        const left = document.createElement("div");
+        const dateEl = document.createElement("div");
+        dateEl.className = "event-date";
+        dateEl.textContent = date;
+        const timeEl = document.createElement("div");
+        timeEl.className = "event-time";
+        timeEl.textContent = time || "";
+
+        left.appendChild(dateEl);
+        left.appendChild(timeEl);
+
+        const seriesEl = document.createElement("div");
+        seriesEl.className = "badge badge-series";
+        seriesEl.textContent = e.series;
+
+        header.appendChild(left);
+        header.appendChild(seriesEl);
+
+        const titleEl = document.createElement("h2");
+        titleEl.className = "event-title";
+        titleEl.textContent = e.title || e.raw || "(no title yet)";
+
+        const speakerEl = document.createElement("div");
+        speakerEl.className = "event-speaker";
+        speakerEl.textContent = e.speaker || "";
+
+        const meta = document.createElement("div");
+        meta.className = "event-meta";
+
+        if (e.location) {
+          const loc = document.createElement("span");
+          loc.innerHTML =
+            '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C8.7 2 6 4.7 6 8c0 4.3 4.3 9.4 5.1 9.7.2.2.5.3.9.3s.7-.1.9-.3C13.2 17.4 18 12.3 18 8c0-3.3-2.7-6-6-6zm0 11c-2.2 0-4-1.8-4-4s1.8-4 4-4 4 1.8 4 4-1.8 4-4 4z"></path></svg>' +
+            (e.location || "");
+          meta.appendChild(loc);
+        }
+
+        const campus = document.createElement("span");
+        campus.innerHTML =
+          '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9.5 12 4l9 5.5-9 5.5L3 9.5zm2 4L12 18l7-4.5V16l-7 4-7-4v-2.5z"></path></svg>' +
+          "Campus Westend";
+        meta.appendChild(campus);
+
+        const link = document.createElement("a");
+        link.className = "event-link";
+        link.href = e.source_url || "#";
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.innerHTML =
+          '<span>Open seminar page</span><span class="chevron">↗</span>';
+
+        card.appendChild(header);
+        card.appendChild(titleEl);
+        if (e.speaker) card.appendChild(speakerEl);
+        card.appendChild(meta);
+        card.appendChild(link);
+
+        eventsEl.appendChild(card);
+      }
+    }
+
+    async function bootstrap() {
+      try {
+        const res = await fetch("events.json", {
+          cache: "no-cache",
+        });
+        if (!res.ok) throw new Error("Failed to load events.json");
+        const data = await res.json();
+        state.events = data;
+        state.filtered = data.slice();
+
+        // Collect series for filter dropdown
+        data.forEach((e) => state.series.add(e.series));
+        const seriesSelect = document.getElementById("seriesFilter");
+        [...state.series].sort().forEach((s) => {
+          const opt = document.createElement("option");
+          opt.value = s;
+          opt.textContent = s;
+          seriesSelect.appendChild(opt);
+        });
+
+        applyFilters();
+      } catch (err) {
+        console.error(err);
+        document.getElementById("summaryCount").textContent =
+          "Could not load events.json";
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const seriesSelect = document.getElementById("seriesFilter");
+      const searchInput = document.getElementById("searchInput");
+      const sortOrder = document.getElementById("sortOrder");
+
+      seriesSelect.addEventListener("change", (e) => {
+        state.seriesFilter = e.target.value;
+        applyFilters();
+      });
+
+      searchInput.addEventListener("input", (e) => {
+        state.searchQuery = e.target.value;
+        applyFilters();
+      });
+
+      sortOrder.addEventListener("change", (e) => {
+        state.sortOrder = e.target.value;
+        applyFilters();
+      });
+
+      bootstrap();
+    });
+  </script>
+</body>
+</html>
