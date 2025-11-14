@@ -449,16 +449,6 @@
         const btnRow = document.createElement("div");
         btnRow.className = "btn-row";
 
-        if (ev.details_url) {
-          const details = document.createElement("a");
-          details.href = ev.details_url;
-          details.target = "_blank";
-          details.rel = "noopener noreferrer";
-          details.className = "btn btn-primary";
-          details.textContent = "Talk details";
-          btnRow.appendChild(details);
-        }
-
         // IMPORTANT: this is the fix – use seminar_page, not the current page
         const seminarPageUrl = ev.seminar_page || ev.details_url;
         if (seminarPageUrl) {
@@ -466,7 +456,7 @@
           series.href = seminarPageUrl;
           series.target = "_blank";
           series.rel = "noopener noreferrer";
-          series.className = "btn";
+          series.className = "btn btn-primary";
           series.textContent = "Open seminar page";
           btnRow.appendChild(series);
         }
