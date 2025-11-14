@@ -1,10 +1,12 @@
+#!/usr/bin/env python3
 from __future__ import annotations
 
 import json
 import re
-from dataclasses import asdict, dataclass
-from datetime import date, datetime, time
+from dataclasses import dataclass, asdict
+from datetime import datetime, date, time
 from typing import List, Optional
+from urllib.parse import urljoin
 
 import requests
 from bs4 import BeautifulSoup
@@ -13,457 +15,288 @@ from bs4 import BeautifulSoup
 @dataclass
 class Event:
     series: str
-    source_url: str
-    title: str
+    source: str          # URL of the page we scraped from
+    title: str           # talk title / topic
     speaker: str
     datetime: datetime
-    location: Optional[str] = None
-    extra_info: Optional[str] = None
-    raw: Optional[str] = None
-
-    def to_dict(self) -> dict:
-        d = asdict(self)
-        d["datetime"] = self.datetime.isoformat()
-        return d
+    location: str
+    extra_info: Optional[str] = None  # e.g. detail URL
 
 
-# ---------- date helpers for the typ03 seminar tables ----------
+# ---------- Generic helpers ----------
 
-
-def parse_date_prefix(line: str) -> tuple[Optional[date], str]:
-    """
-    Extract a date at the very beginning of a 'Date Speaker Topic' row
-    and return (date, rest_of_line).
-
-    Handles:
-      - '04 Nov 2025 ...'
-      - 'Nov 18, 2025 ...'
-    """
-    line = line.replace("\xa0", " ").strip()
-    tokens = line.split()
-    if len(tokens) < 3:
-        return None, line
-
-    # Case 1: '04 Nov 2025 ...'
-    try:
-        first = tokens[0].rstrip(".")
-        int(first)
-    except ValueError:
-        pass
-    else:
-        date_str = " ".join([tokens[0], tokens[1], tokens[2]])
-        for fmt in ("%d %b %Y", "%d %B %Y"):
-            try:
-                d = datetime.strptime(date_str, fmt).date()
-                rest = " ".join(tokens[3:])
-                return d, rest
-            except ValueError:
-                continue
-
-    # Case 2: 'Nov 18, 2025 ...'
-    try:
-        tok1 = tokens[1].rstrip(",.")
-        date_str = " ".join([tokens[0], tok1, tokens[2]])
-        for fmt in ("%b %d %Y", "%B %d %Y"):
-            try:
-                d = datetime.strptime(date_str, fmt).date()
-                rest = " ".join(tokens[3:])
-                return d, rest
-            except ValueError:
-                continue
-    except IndexError:
-        pass
-
-    return None, line
-
-
-def split_speaker_and_title(rest: str) -> tuple[str, str]:
-    """
-    Heuristic split of 'speaker' and 'title' from the remainder of a line.
-    """
-    rest = " ".join(rest.split())
-    if not rest:
-        return "", ""
-
-    raw = rest
-
-    # Case 1: speaker (affiliation) in parentheses, title after last ')'
-    if "(" in rest and ")" in rest:
-        last_close = rest.rfind(")")
-        speaker = rest[: last_close + 1].strip()
-        title = rest[last_close + 1 :].strip(" -–:")
-        return speaker, title or ""
-
-    tokens = rest.split()
-
-    # Case 2: 'Firstname Lastname TBA'
-    if tokens:
-        last_token = tokens[-1].upper().rstrip(".")
-        if last_token in {"TBA", "TBD"} and len(tokens) >= 2:
-            speaker = " ".join(tokens[:-1])
-            title = tokens[-1]
-            return speaker, title
-
-    # Case 3: generic fallback – first two tokens ~ speaker
-    if len(tokens) >= 4:
-        speaker = " ".join(tokens[:2])
-        title = " ".join(tokens[2:])
-        return speaker, title
-
-    return raw, ""
-
-
-def scrape_typo3_series(
-    url: str,
-    series: str,
-    default_time: time,
-    default_location: Optional[str],
-) -> List[Event]:
-    """
-    Scrape seminar listings that follow the 'Date Speaker Topic' pattern
-    on the old.wiwi.uni-frankfurt.de Typo3 pages.
-    """
+def fetch_soup(url: str) -> BeautifulSoup:
     print(f"Scraping {url}")
     resp = requests.get(url, timeout=20)
     resp.raise_for_status()
-    soup = BeautifulSoup(resp.text, "html.parser")
-    text = soup.get_text("\n", strip=True)
-    lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
+    return BeautifulSoup(resp.text, "html.parser")
 
-    # Find the header line with 'Date Speaker Topic' (allow weird spaces)
-    header_index = None
-    for i, line in enumerate(lines):
-        lower = line.replace("\xa0", " ").lower()
-        if ("date" in lower) and ("speaker" in lower) and ("topic" in lower):
-            header_index = i
-            break
 
-    if header_index is None:
-        # e.g. Money & Macro Brown Bag (inactive), or layout changed
+def parse_any_date(date_str: str) -> Optional[date]:
+    """
+    Handle things like:
+      - 04 Nov 2025
+      - 19 Nov 2025
+      - Nov 18, 2025
+      - 27. November 2025
+    """
+    # Normalize punctuation and whitespace
+    s = re.sub(r"[.,]", " ", date_str)
+    s = re.sub(r"\s+", " ", s).strip()
+
+    # Try several plausible formats
+    fmt_candidates = [
+        "%d %b %Y",
+        "%d %B %Y",
+        "%b %d %Y",
+        "%B %d %Y",
+    ]
+    for fmt in fmt_candidates:
+        try:
+            return datetime.strptime(s, fmt).date()
+        except ValueError:
+            continue
+    print(f"  [warn] Could not parse date '{date_str}' (normalized '{s}')")
+    return None
+
+
+def event_to_json_dict(e: Event) -> dict:
+    d = asdict(e)
+    d["datetime"] = e.datetime.isoformat()
+    return d
+
+
+# ---------- TYPO3 table-based seminars ----------
+
+def scrape_typo3_table_series(
+    url: str,
+    series_name: str,
+    default_time: time,
+    default_location: str,
+) -> List[Event]:
+    """
+    Scrape a TYPO3 seminar page that uses:
+      <table class="table table-striped dataTable data-table-event no-footer" ...>
+    with columns: Date | Speaker | Topic
+    """
+    soup = fetch_soup(url)
+    table = soup.select_one("table.data-table-event")
+    if not table:
+        # e.g. Money & Macro Brown Bag currently inactive => "Keine Ereignisse gefunden."
+        print(f"  [info] No data-table-event found on {url}")
         return []
 
     events: List[Event] = []
+    tbody = table.find("tbody") or table
+    for row in tbody.find_all("tr"):
+        date_cell = row.find("td", class_="dtstart-container")
+        speaker_cell = row.find("td", class_="speaker")
+        topic_cell = row.find("td", class_="summary")
 
-    for line in lines[header_index + 1 :]:
-        lower = line.lower()
-
-        # stop markers: end of table / previous seminars / etc.
-        if (
-            lower.startswith("* * *")
-            or "previous events" in lower
-            or "previous seminars" in lower
-            or "former seminars" in lower
-            or "mehr aus diesem bereich" in lower
-            or "keine ereignisse" in lower
-        ):
-            break
-
-        d, rest = parse_date_prefix(line)
-        if d is None:
-            continue
-        if not rest.strip():
+        if not (date_cell and speaker_cell and topic_cell):
             continue
 
-        speaker, title = split_speaker_and_title(rest)
-        if not title:
-            title = rest.strip()
+        raw_date = date_cell.get_text(strip=True)
+        dt_date = parse_any_date(raw_date)
+        if not dt_date:
+            continue
 
-        dt_obj = datetime.combine(d, default_time)
+        speaker = speaker_cell.get_text(" ", strip=True)
+
+        # Topic text + link (if present)
+        topic_link = topic_cell.find("a")
+        if topic_link:
+            title = topic_link.get_text(" ", strip=True)
+            detail_href = topic_link.get("href")
+            detail_url = urljoin(url, detail_href) if detail_href else None
+        else:
+            title = topic_cell.get_text(" ", strip=True)
+            detail_url = None
+
+        dt = datetime.combine(dt_date, default_time)
+
         events.append(
             Event(
-                series=series,
-                source_url=url,
+                series=series_name,
+                source=url,
                 title=title,
-                speaker=speaker or "",
-                datetime=dt_obj,
+                speaker=speaker,
+                datetime=dt,
                 location=default_location,
-                raw=rest,
+                extra_info=detail_url,
             )
         )
 
     return events
 
 
-# ---------- IMFS helpers ----------
-
-MONTH_MAP = {
-    "jan": 1,
-    "january": 1,
-    "januar": 1,
-    "feb": 2,
-    "february": 2,
-    "februar": 2,
-    "mar": 3,
-    "march": 3,
-    "maerz": 3,
-    "märz": 3,
-    "apr": 4,
-    "april": 4,
-    "may": 5,
-    "mai": 5,
-    "jun": 6,
-    "june": 6,
-    "juni": 6,
-    "jul": 7,
-    "july": 7,
-    "juli": 7,
-    "aug": 8,
-    "august": 8,
-    "sep": 9,
-    "sept": 9,
-    "september": 9,
-    "oct": 10,
-    "october": 10,
-    "oktober": 10,
-    "nov": 11,
-    "november": 11,
-    "dec": 12,
-    "december": 12,
-    "dezember": 12,
-}
-
-
-def parse_german_or_english_date(line: str) -> Optional[date]:
-    """
-    Parse dates like '27. November 2025' from the IMFS page.
-    """
-    line = line.replace("\xa0", " ")
-    m = re.search(r"(\d{1,2})\.\s*([A-Za-zäöüÄÖÜ]+)\s+(\d{4})", line)
-    if not m:
-        return None
-
-    day = int(m.group(1))
-    month_name = m.group(2)
-    year = int(m.group(3))
-
-    key = month_name.lower()
-    key = key.replace("ä", "ae").replace("ö", "oe").replace("ü", "ue")
-
-    month = MONTH_MAP.get(key)
-    if not month:
-        return None
-
-    try:
-        return date(year, month, day)
-    except ValueError:
-        return None
-
+# ---------- IMFS “Alle kommenden Veranstaltungen” ----------
 
 IMFS_URL = "https://www.imfs-frankfurt.de/veranstaltungen/alle-kommenden-veranstaltungen"
 
 
-def parse_imfs_block(series_name: str, lines: List[str]) -> Optional[Event]:
-    """
-    Parse one event block on the IMFS 'Alle kommenden Veranstaltungen' page.
-
-    Typical pattern (current example):
-
-        Prof. Dr. Andreas Kerkemeyer, TU Darmstadt
-        "Protection of personal data in the digital Euro ecosystem"
-        27. November 2025
-        12:30-13:30 Uhr
-        Raum “Commerzbank”
-        House of Finance
-        Goethe-Universität Frankfurt
-        ...
-
-    Returns an Event or None if parsing fails.
-    """
-    if not lines:
-        return None
-
-    speaker = lines[0].strip()
-    title = ""
-
-    # Title line: anything with quotes, otherwise just second line.
-    for ln in lines[1:]:
-        if '"' in ln or "„" in ln or "“" in ln:
-            m = re.search(r"[\"“„](.*?)[\"”“]", ln)
-            if m:
-                title = m.group(1).strip()
-            else:
-                title = ln.strip().strip('"“”„')
-            break
-    else:
-        if len(lines) > 1:
-            title = lines[1].strip()
-
-    # Date line
-    event_date: Optional[date] = None
-    date_idx: Optional[int] = None
-    for idx, ln in enumerate(lines):
-        d = parse_german_or_english_date(ln)
-        if d:
-            event_date = d
-            date_idx = idx
-            break
-
-    if event_date is None:
-        return None
-
-    # Time line after the date
-    event_time = time(12, 0)
-    time_idx: Optional[int] = None
-    if date_idx is not None:
-        for j, ln in enumerate(lines[date_idx + 1 :], start=date_idx + 1):
-            if "uhr" in ln.lower() or re.search(r"\d{1,2}:\d{2}", ln):
-                m = re.search(r"(\d{1,2}):(\d{2})", ln)
-                if m:
-                    h = int(m.group(1))
-                    mnt = int(m.group(2))
-                    event_time = time(h, mnt)
-                time_idx = j
-                break
-
-    # Location lines between time line and 'Bitte melden ...'
-    loc_lines: List[str] = []
-    start_loc = (time_idx + 1) if time_idx is not None else (date_idx + 1 if date_idx is not None else 1)
-    for ln in lines[start_loc:]:
-        lower = ln.lower()
-        if "bitte melden" in lower or "registration" in lower or "anmeldung" in lower:
-            break
-        loc_lines.append(ln.strip())
-
-    location = ", ".join(loc_lines) if loc_lines else None
-    dt_obj = datetime.combine(event_date, event_time)
-
-    return Event(
-        series=f"IMFS – {series_name}",
-        source_url=IMFS_URL,
-        title=title or "",
-        speaker=speaker,
-        datetime=dt_obj,
-        location=location,
-        raw="\n".join(lines),
-    )
-
-
 def scrape_imfs() -> List[Event]:
-    print(f"Scraping {IMFS_URL}")
-    resp = requests.get(IMFS_URL, timeout=20)
-    resp.raise_for_status()
-    soup = BeautifulSoup(resp.text, "html.parser")
+    """
+    Very simple text-based parser for the IMFS "Alle kommenden Veranstaltungen" page.
+    Assumes the first event block is the IMFS Working Lunch (like in your current output).
+    """
+    soup = fetch_soup(IMFS_URL)
+    text = soup.get_text("\n")
+    lines = [ln.strip() for ln in text.splitlines()]
+    lines = [ln for ln in lines if ln]
 
-    heading = soup.find(
-        lambda tag: tag.name in {"h1", "h2"}
-        and "Alle kommenden Veranstaltungen" in tag.get_text()
-    )
-    if not heading:
+    # Find the "IMFS Working Lunch" block
+    try:
+        idx = lines.index("IMFS Working Lunch")
+    except ValueError:
+        print("  [warn] 'IMFS Working Lunch' not found on IMFS page")
         return []
 
-    events: List[Event] = []
-    current_title: Optional[str] = None
-    current_lines: List[str] = []
+    # Heuristic: expect the following structure
+    # idx      : "IMFS Working Lunch"
+    # idx + 1  : speaker line
+    # idx + 2  : title line (quoted or not)
+    # idx + 3  : date line, e.g. "27. November 2025"
+    # idx + 4  : time line, e.g. "12:30-13:30 Uhr"
+    # idx + 5+ : location lines until something like "Bitte melden Sie sich ..."
+    try:
+        speaker_line = lines[idx + 1]
+        title_line = lines[idx + 2].strip('"“”')
+        date_line = lines[idx + 3]
+        time_line = lines[idx + 4]
+    except IndexError:
+        print("  [warn] IMFS page structure changed (too few lines after heading)")
+        return []
 
-    for tag in heading.find_all_next():
-        # Stop when we clearly left the events section
-        if tag.name == "h1" and tag is not heading:
+    dt_date = parse_any_date(date_line)
+    if not dt_date:
+        return []
+
+    # Try to extract start time from the time line
+    m = re.search(r"(\d{1,2}:\d{2})", time_line)
+    if m:
+        try:
+            dt_time = datetime.strptime(m.group(1), "%H:%M").time()
+        except ValueError:
+            dt_time = time(12, 30)
+    else:
+        dt_time = time(12, 30)  # fallback
+
+    # Location = the next few lines until "Bitte melden" or another heading
+    location_lines: List[str] = []
+    for ln in lines[idx + 5 :]:
+        if ln.startswith("Bitte melden") or ln.startswith("###") or ln.startswith("Veranstaltungen"):
             break
+        location_lines.append(ln)
+    location = ", ".join(location_lines) if location_lines else "House of Finance, Goethe-Universität Frankfurt"
 
-        if tag.name in {"h2", "h3"}:
-            text = tag.get_text(" ", strip=True)
+    dt = datetime.combine(dt_date, dt_time)
 
-            # 'Alle kommenden Veranstaltungen' itself is not an event
-            if "Alle kommenden Veranstaltungen" in text:
-                continue
-
-            # Flush previous block
-            if current_title and current_lines:
-                ev = parse_imfs_block(current_title, current_lines)
-                if ev:
-                    events.append(ev)
-                current_lines = []
-
-            current_title = text
-
-        elif tag.name in {"p", "div", "span", "li"}:
-            txt = tag.get_text(" ", strip=True)
-            if txt:
-                current_lines.append(txt)
-
-        # Stop when we reach the 'Veranstaltungen' navigation heading again
-        if tag.name == "h3" and "Veranstaltungen" in tag.get_text():
-            break
-
-    # Flush last block
-    if current_title and current_lines:
-        ev = parse_imfs_block(current_title, current_lines)
-        if ev:
-            events.append(ev)
-
-    return events
+    event = Event(
+        series="IMFS Working Lunch",
+        source=IMFS_URL,
+        title=title_line,
+        speaker=speaker_line,
+        datetime=dt,
+        location=location,
+        extra_info=None,
+    )
+    return [event]
 
 
-# ---------- main aggregation ----------
-
+# ---------- Main orchestration ----------
 
 def main() -> None:
     today = date.today()
-    events: List[Event] = []
 
-    # Finance
-    events += scrape_typo3_series(
-        url="https://www.old.wiwi.uni-frankfurt.de/abteilungen/finance/seminar/finance-seminar-series/seminar-calendar.html",
-        series="Finance Seminar Series",
-        default_time=time(12, 0),
-        default_location="HoF E.01 (Deutsche Bank)",
-    )
-    events += scrape_typo3_series(
-        url="https://www.old.wiwi.uni-frankfurt.de/abteilungen/finance/seminar/brown-bag/finance-brown-bag.html",
-        series="Finance Brown Bag",
-        default_time=time(14, 0),
-        default_location="DZ Bank (HoF E.20)",
+    all_events: List[Event] = []
+
+    # 1) Finance Seminar Series (Tuesdays 12:00–13:15, HoF E.01 Deutsche Bank)
+    all_events.extend(
+        scrape_typo3_table_series(
+            url="https://www.old.wiwi.uni-frankfurt.de/abteilungen/finance/seminar/finance-seminar-series/seminar-calendar.html",
+            series_name="Finance Seminar Series",
+            default_time=time(12, 0),
+            default_location="House of Finance, HoF E.01 (Deutsche Bank)",
+        )
     )
 
-    # Management & Micro
-    events += scrape_typo3_series(
-        url="https://www.old.wiwi.uni-frankfurt.de/abteilungen/mm/forschung/forschungskolloquien/amos.html",
-        series="AMOS Seminar",
-        default_time=time(14, 15),
-        default_location="RuW 4.201",
-    )
-    events += scrape_typo3_series(
-        url="https://www.old.wiwi.uni-frankfurt.de/abteilungen/mm/forschung/forschungskolloquien/brown-bag-seminar.html",
-        series="Management & Micro Brown Bag",
-        default_time=time(12, 30),
-        default_location="RuW 4.201",
+    # 2) Finance Brown Bag (Wednesdays 14:00–15:00, DZ Bank HoF E.20)
+    all_events.extend(
+        scrape_typo3_table_series(
+            url="https://www.old.wiwi.uni-frankfurt.de/abteilungen/finance/seminar/brown-bag/finance-brown-bag.html",
+            series_name="Finance Brown Bag",
+            default_time=time(14, 0),
+            default_location="DZ Bank, HoF E.20",
+        )
     )
 
-    # EQ
-    events += scrape_typo3_series(
-        url="https://www.old.wiwi.uni-frankfurt.de/abteilungen/eq/seminars/quantitative-economic-policy-seminar.html",
-        series="Quantitative Economic Policy Seminar",
-        default_time=time(12, 0),  # QEP page only gives the room, not the time
-        default_location="RuW 4.202",
+    # 3) AMOS – Applied Microeconomics and Organization Seminar (Wed 14:15, RuW 4.201)
+    all_events.extend(
+        scrape_typo3_table_series(
+            url="https://www.old.wiwi.uni-frankfurt.de/abteilungen/mm/forschung/forschungskolloquien/amos.html",
+            series_name="AMOS Seminar",
+            default_time=time(14, 15),
+            default_location="RuW 4.201",
+        )
     )
 
-    # Money & Macro
-    events += scrape_typo3_series(
-        url="https://www.old.wiwi.uni-frankfurt.de/abteilungen/money-and-macroeconomics/macro-seminar.html",
-        series="Macroeconomics Seminar",
-        default_time=time(14, 15),
-        default_location="HoF E.01 (Deutsche Bank)",
-    )
-    events += scrape_typo3_series(
-        url="https://www.old.wiwi.uni-frankfurt.de/abteilungen/money-and-macroeconomics/brown-bag-seminar.html",
-        series="Money & Macro Brown Bag",
-        default_time=time(12, 30),
-        default_location=None,
+    # 4) MM Brown Bag Seminar (Thursdays 12:30–13:30, RuW 4.201)
+    all_events.extend(
+        scrape_typo3_table_series(
+            url="https://www.old.wiwi.uni-frankfurt.de/abteilungen/mm/forschung/forschungskolloquien/brown-bag-seminar.html",
+            series_name="MM Brown Bag Seminar",
+            default_time=time(12, 30),
+            default_location="RuW 4.201",
+        )
     )
 
-    # IMFS
-    events += scrape_imfs()
+    # 5) Quantitative Economic Policy Seminar (QEP) – German page
+    all_events.extend(
+        scrape_typo3_table_series(
+            url="https://www.old.wiwi.uni-frankfurt.de/abteilungen/eq/seminars/quantitative-economic-policy-seminar.html",
+            series_name="Quantitative Economic Policy Seminar (QEP)",
+            default_time=time(16, 0),  # time not stated precisely; adjust if needed
+            default_location="RuW 4.202",
+        )
+    )
 
-    # Keep only future (and today) events
-    events = [e for e in events if e.datetime.date() >= today]
+    # 6) Macroeconomics Seminar (Money and Macroeconomics, Tuesdays 14:15–15:30, HoF E.01)
+    all_events.extend(
+        scrape_typo3_table_series(
+            url="https://www.old.wiwi.uni-frankfurt.de/abteilungen/money-and-macroeconomics/macro-seminar.html",
+            series_name="Macroeconomics Seminar",
+            default_time=time(14, 15),
+            default_location="House of Finance, HoF E.01 (Deutsche Bank)",
+        )
+    )
 
-    # Sort chronologically
-    events.sort(key=lambda e: e.datetime)
+    # 7) Money & Macro Brown Bag – this page is currently “inactive”, but we call it anyway;
+    #    scrape_typo3_table_series will just return [] if there is no table.
+    all_events.extend(
+        scrape_typo3_table_series(
+            url="https://www.old.wiwi.uni-frankfurt.de/abteilungen/money-and-macroeconomics/brown-bag-seminar.html",
+            series_name="Money and Macro Brown Bag Seminar",
+            default_time=time(12, 30),
+            default_location="House of Finance / Money and Macroeconomics",
+        )
+    )
 
+    # 8) IMFS – Alle kommenden Veranstaltungen
+    all_events.extend(scrape_imfs())
+
+    # Filter to upcoming events only
+    upcoming = [ev for ev in all_events if ev.datetime.date() >= today]
+
+    # Sort by date & time
+    upcoming.sort(key=lambda e: e.datetime)
+
+    # Write JSON
+    data = [event_to_json_dict(e) for e in upcoming]
     with open("events.json", "w", encoding="utf-8") as f:
-        json.dump([e.to_dict() for e in events], f, ensure_ascii=False, indent=2)
+        json.dump(data, f, indent=2, ensure_ascii=False)
 
-    print(f"Wrote {len(events)} events to events.json")
+    print(f"Wrote {len(upcoming)} events to events.json")
 
 
 if __name__ == "__main__":
