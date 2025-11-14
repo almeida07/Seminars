@@ -36,4 +36,4 @@ python scraper.py  # generates events.json
 
 ## Previewing pull requests
 
-Every pull request automatically runs the **Preview website** workflow. Once the job finishes, open the deployment that appears in the pull request checks ("View deployment") to browse the generated site with the branch's changes before merging. Each build publishes to a branch-scoped **Preview website (<branch>)** environment so protected production rules for `github-pages` won't block branch builds. You can also trigger the workflow manually from the **Actions** tab via **Run workflow**.
+Every pull request automatically runs the **Preview website** workflow. Once the job finishes, open the deployment that appears in the pull request checks ("View deployment") to browse the generated site with the branch's changes before merging. Each build publishes as a GitHub Pages **preview** deployment on a branch-scoped **Preview website (<branch>)** environment, so production rules that restrict the `github-pages` environment to `main` won't block branch builds. You can also trigger the workflow manually from the **Actions** tab via **Run workflow**.
