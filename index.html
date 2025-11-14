@@ -138,6 +138,7 @@
       border: 1px solid rgba(31,41,55,0.9);
       overflow: hidden;
       background: radial-gradient(circle at top left, rgba(15,23,42,0.96), rgba(2,6,23,0.98));
+      transition: border-color 0.2s ease, background 0.2s ease;
     }
 
     table {
@@ -270,34 +271,145 @@
       background: rgba(148,163,184,0.8);
     }
 
-    @media (max-width: 800px) {
-      th:nth-child(5),
-      td:nth-child(5) {
-        display: none;
+    @media (max-width: 900px) {
+      header {
+        padding-inline: 1rem;
+      }
+
+      main {
+        padding-inline: 1rem 1.25rem;
+      }
+
+      .filters {
+        gap: 0.6rem;
+      }
+
+      .panel {
+        padding-inline: 0.85rem;
       }
     }
 
-    @media (max-width: 640px) {
-      th:nth-child(6),
-      td:nth-child(6) {
-        display: none;
+    @media (max-width: 720px) {
+      body {
+        background: radial-gradient(circle at top, #111c31, #020617 60%);
+      }
+
+      header {
+        padding-inline: 0.85rem;
+      }
+
+      main {
+        padding-inline: 0.85rem;
+      }
+
+      .panel {
+        padding: 1rem 0.85rem 1.1rem;
+        border-radius: 1.1rem;
+        border: 1px solid rgba(148,163,184,0.18);
+        box-shadow: 0 22px 48px rgba(8,15,35,0.65);
       }
 
       .filters {
         flex-direction: column;
         align-items: stretch;
+        gap: 0.9rem;
       }
 
       .filters-group {
         flex: 1 1 auto;
+        width: 100%;
       }
 
-      main {
-        padding-inline: 0.75rem;
+      .badge {
+        justify-content: flex-start;
+        width: 100%;
       }
 
-      header {
-        padding-inline: 0.75rem;
+      .table-wrapper {
+        background: transparent;
+        border: none;
+        overflow: visible;
+        margin-top: 0.9rem;
+      }
+
+      table {
+        display: block;
+        width: 100%;
+      }
+
+      thead {
+        display: none;
+      }
+
+      tbody {
+        display: grid;
+        gap: 1rem;
+      }
+
+      tbody tr {
+        display: grid;
+        gap: 0.75rem;
+        padding: 1rem 1rem 1.15rem;
+        border-radius: 1rem;
+        border: 1px solid rgba(148,163,184,0.16);
+        background: linear-gradient(145deg, rgba(15,23,42,0.97), rgba(2,6,23,0.98));
+        box-shadow: 0 24px 45px rgba(5,10,25,0.65);
+      }
+
+      tbody tr:nth-child(even),
+      tbody tr:nth-child(odd) {
+        background: linear-gradient(145deg, rgba(15,23,42,0.97), rgba(2,6,23,0.98));
+      }
+
+      tbody tr:hover {
+        border-color: rgba(56,189,248,0.35);
+        background: linear-gradient(135deg, rgba(15,23,42,1), rgba(15,23,42,0.96));
+      }
+
+      td {
+        display: grid;
+        gap: 0.35rem;
+        padding: 0;
+        border: none;
+      }
+
+      td::before {
+        content: attr(data-label);
+        font-size: 0.62rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--text-muted);
+      }
+
+      td.empty {
+        display: block;
+        padding: 1.35rem 0.75rem;
+        border-radius: 0.9rem;
+        background: linear-gradient(145deg, rgba(15,23,42,0.9), rgba(15,23,42,0.96));
+      }
+
+      td.empty::before {
+        display: none;
+      }
+
+      .col-date {
+        font-size: 1.05rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+      }
+
+      .col-title span {
+        -webkit-line-clamp: unset;
+        white-space: normal;
+      }
+
+      .btn-row {
+        justify-content: flex-start;
+      }
+
+      .btn {
+        width: 100%;
+        justify-content: center;
       }
     }
   </style>
@@ -417,35 +529,42 @@
 
         const tdDate = document.createElement("td");
         tdDate.className = "col-date";
+        tdDate.dataset.label = "Date";
         tdDate.textContent = formatDate(ev.date);
         tr.appendChild(tdDate);
 
         const tdSeminar = document.createElement("td");
         tdSeminar.className = "col-seminar";
+        tdSeminar.dataset.label = "Seminar";
         tdSeminar.textContent = ev.seminar_name || ev.seminar_id;
         tr.appendChild(tdSeminar);
 
         const tdSpeaker = document.createElement("td");
         tdSpeaker.className = "col-speaker";
+        tdSpeaker.dataset.label = "Speaker";
         tdSpeaker.textContent = ev.speaker || "";
         tr.appendChild(tdSpeaker);
 
         const tdTitle = document.createElement("td");
         tdTitle.className = "col-title";
+        tdTitle.dataset.label = "Title";
         const titleSpan = document.createElement("span");
         titleSpan.textContent = ev.title || "";
         tdTitle.appendChild(titleSpan);
         tr.appendChild(tdTitle);
 
         const tdTime = document.createElement("td");
+        tdTime.dataset.label = "Time";
         tdTime.textContent = ev.time_info || "";
         tr.appendChild(tdTime);
 
         const tdLocation = document.createElement("td");
+        tdLocation.dataset.label = "Location";
         tdLocation.textContent = ev.location || "";
         tr.appendChild(tdLocation);
 
         const tdLinks = document.createElement("td");
+        tdLinks.dataset.label = "Links";
         const btnRow = document.createElement("div");
         btnRow.className = "btn-row";
 
