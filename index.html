@@ -38,6 +38,36 @@
       margin: 0 auto;
     }
 
+    .page-notice {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.6rem 0.95rem;
+      margin-bottom: 1rem;
+      border-radius: 0.9rem;
+      border: 1px solid rgba(56,189,248,0.35);
+      background: linear-gradient(135deg, rgba(56,189,248,0.18), rgba(15,23,42,0.92));
+      color: var(--text);
+      font-size: 0.82rem;
+    }
+
+    .page-notice strong {
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .page-notice a {
+      color: inherit;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .page-notice a:hover {
+      text-decoration: underline;
+    }
+
     h1 {
       margin: 0 0 0.25rem;
       font-size: clamp(1.6rem, 3vw, 2.1rem);
@@ -416,6 +446,13 @@
 </head>
 <body>
   <header>
+    <div class="page-notice">
+      <strong>Contact</strong>
+      <span>
+        Should you notice an issue on this page, please reach out to
+        <a href="mailto:gabriel.almeida@stud.uni-frankfurt.de">gabriel.almeida@stud.uni-frankfurt.de</a>.
+      </span>
+    </div>
     <h1>Goethe Seminars</h1>
     <p class="subtitle">Upcoming research seminars at Goethe University Frankfurt &amp; IMFS</p>
   </header>
