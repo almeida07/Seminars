@@ -10,7 +10,8 @@
     "time_info": "Tuesdays 12:00–13:15",
     "location": "HoF E.01 / Deutsche Bank room",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/finance/seminar/finance-seminar-series/abteilungen/finance/seminar/finance-seminar-series/seminar-calendar/calendar-details/cal/event/tx_cal_phpicalendar/2025/11/04/2093.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": "https://profiles.imperial.ac.uk/a.michaelides"
   },
   {
     "seminar_id": "finance_seminar",
@@ -23,7 +24,8 @@
     "time_info": "Tuesdays 12:00–13:15",
     "location": "HoF E.01 / Deutsche Bank room",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/finance/seminar/finance-seminar-series/abteilungen/finance/seminar/finance-seminar-series/seminar-calendar/calendar-details/cal/event/tx_cal_phpicalendar/2025/11/11/2094.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": ""
   },
   {
     "seminar_id": "finance_seminar",
@@ -36,7 +38,8 @@
     "time_info": "Tuesdays 12:00–13:15",
     "location": "HoF E.01 / Deutsche Bank room",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/finance/seminar/finance-seminar-series/abteilungen/finance/seminar/finance-seminar-series/seminar-calendar/calendar-details/cal/event/tx_cal_phpicalendar/2025/11/18/2095.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": ""
   },
   {
     "seminar_id": "macro_seminar",
@@ -49,7 +52,8 @@
     "time_info": "Tuesdays 14:15–15:30",
     "location": "HoF E.01 / Deutsche Bank room",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/money-and-macroeconomics/abteilungen/money-and-macroeconomics/macro-seminar/calendar-details/cal/event/tx_cal_phpicalendar/2025/11/18/2112.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": ""
   },
   {
     "seminar_id": "finance_brownbag",
@@ -62,7 +66,8 @@
     "time_info": "Wednesdays 14:00–15:00",
     "location": "HoF E.20 / DZ Bank room",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/finance/seminar/brown-bag/abteilungen/finance/seminar/brown-bag/calendar-details/cal/event/tx_cal_phpicalendar/2025/11/19/2146.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": ""
   },
   {
     "seminar_id": "mm_amos",
@@ -75,7 +80,8 @@
     "time_info": "Usually Wednesdays 14:15",
     "location": "RuW 4.201",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/mm/forschung/forschungskolloquien/abteilungen/mm/forschung/forschungskolloquien/amos/calendar-details-mm-seminar/cal/event/tx_cal_phpicalendar/2025/11/19/2136.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": "https://www.tse-fr.eu/people/bruno-jullien"
   },
   {
     "seminar_id": "mm_brownbag",
@@ -88,7 +94,8 @@
     "time_info": "Thursdays 12:30–13:30",
     "location": "RuW 4.201",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/mm/forschung/forschungskolloquien/abteilungen/mm/forschung/forschungskolloquien/brown-bag-seminar/calendar-details-mm-bb/cal/event/tx_cal_phpicalendar/2025/11/20/2077.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": ""
   },
   {
     "seminar_id": "finance_seminar",
@@ -101,7 +108,8 @@
     "time_info": "Tuesdays 12:00–13:15",
     "location": "HoF E.01 / Deutsche Bank room",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/finance/seminar/finance-seminar-series/abteilungen/finance/seminar/finance-seminar-series/seminar-calendar/calendar-details/cal/event/tx_cal_phpicalendar/2025/11/25/2096.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": ""
   },
   {
     "seminar_id": "mm_amos",
@@ -114,7 +122,8 @@
     "time_info": "Usually Wednesdays 14:15",
     "location": "RuW 4.201",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/mm/forschung/forschungskolloquien/abteilungen/mm/forschung/forschungskolloquien/amos/calendar-details-mm-seminar/cal/event/tx_cal_phpicalendar/2025/11/26/2137.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": "https://www.sciencespo.fr/department-economics/directory/hagenbach-jeanne/"
   },
   {
     "seminar_id": "qep",
@@ -127,7 +136,8 @@
     "time_info": "",
     "location": "RuW 4.202",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/eq/seminars/abteilungen/eq/seminars/quantitative-economic-policy-seminar/calendar-details/cal/event/tx_cal_phpicalendar/2025/11/27/2122.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": ""
   },
   {
     "seminar_id": "imfs",
@@ -140,7 +150,8 @@
     "time_info": "12:30-13:30",
     "location": "Raum “Commerzbank”, House of Finance, Goethe-Universität Frankfurt",
     "details_url": "http://www.eventbrite.de/e/imfs-working-lunch-with-prof-dr-andreas-kerkemeyer-tu-darmstadt-tickets-1969100320064?aff=oddtdtcreator",
-    "source": "IMFS Frankfurt"
+    "source": "IMFS Frankfurt",
+    "speaker_url": ""
   },
   {
     "seminar_id": "finance_seminar",
@@ -153,7 +164,8 @@
     "time_info": "Tuesdays 12:00–13:15",
     "location": "HoF E.01 / Deutsche Bank room",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/finance/seminar/finance-seminar-series/abteilungen/finance/seminar/finance-seminar-series/seminar-calendar/calendar-details/cal/event/tx_cal_phpicalendar/2025/12/02/2097.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": ""
   },
   {
     "seminar_id": "finance_brownbag",
@@ -166,7 +178,8 @@
     "time_info": "Wednesdays 14:00–15:00",
     "location": "HoF E.20 / DZ Bank room",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/finance/seminar/brown-bag/abteilungen/finance/seminar/brown-bag/calendar-details/cal/event/tx_cal_phpicalendar/2025/12/03/2148.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": ""
   },
   {
     "seminar_id": "mm_amos",
@@ -179,7 +192,8 @@
     "time_info": "Usually Wednesdays 14:15",
     "location": "RuW 4.201",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/mm/forschung/forschungskolloquien/abteilungen/mm/forschung/forschungskolloquien/amos/calendar-details-mm-seminar/cal/event/tx_cal_phpicalendar/2025/12/03/2138.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": "https://www.su.se/english/profiles/jrick-1.312857"
   },
   {
     "seminar_id": "mm_amos",
@@ -192,7 +206,8 @@
     "time_info": "Usually Wednesdays 14:15",
     "location": "RuW 4.201",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/mm/forschung/forschungskolloquien/abteilungen/mm/forschung/forschungskolloquien/amos/calendar-details-mm-seminar/cal/event/tx_cal_phpicalendar/2025/12/04/2154.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": "https://discovery.nus.edu.sg/24759-ruben-durante"
   },
   {
     "seminar_id": "mm_brownbag",
@@ -205,7 +220,8 @@
     "time_info": "Thursdays 12:30–13:30",
     "location": "RuW 4.201",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/mm/forschung/forschungskolloquien/abteilungen/mm/forschung/forschungskolloquien/brown-bag-seminar/calendar-details-mm-bb/cal/event/tx_cal_phpicalendar/2025/12/04/2154.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": ""
   },
   {
     "seminar_id": "qep",
@@ -218,7 +234,8 @@
     "time_info": "",
     "location": "RuW 4.202",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/eq/seminars/abteilungen/eq/seminars/quantitative-economic-policy-seminar/calendar-details/cal/event/tx_cal_phpicalendar/2025/12/04/2123.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": ""
   },
   {
     "seminar_id": "finance_seminar",
@@ -231,7 +248,8 @@
     "time_info": "Tuesdays 12:00–13:15",
     "location": "HoF E.01 / Deutsche Bank room",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/finance/seminar/finance-seminar-series/abteilungen/finance/seminar/finance-seminar-series/seminar-calendar/calendar-details/cal/event/tx_cal_phpicalendar/2025/12/09/2098.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": ""
   },
   {
     "seminar_id": "finance_brownbag",
@@ -244,7 +262,8 @@
     "time_info": "Wednesdays 14:00–15:00",
     "location": "HoF E.20 / DZ Bank room",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/finance/seminar/brown-bag/abteilungen/finance/seminar/brown-bag/calendar-details/cal/event/tx_cal_phpicalendar/2025/12/10/2129.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": ""
   },
   {
     "seminar_id": "mm_amos",
@@ -257,7 +276,8 @@
     "time_info": "Usually Wednesdays 14:15",
     "location": "RuW 4.201",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/mm/forschung/forschungskolloquien/abteilungen/mm/forschung/forschungskolloquien/amos/calendar-details-mm-seminar/cal/event/tx_cal_phpicalendar/2025/12/10/2139.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": "https://sites.google.com/view/lnagel"
   },
   {
     "seminar_id": "qep",
@@ -270,7 +290,8 @@
     "time_info": "",
     "location": "RuW 4.202",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/eq/seminars/abteilungen/eq/seminars/quantitative-economic-policy-seminar/calendar-details/cal/event/tx_cal_phpicalendar/2025/12/11/2124.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": ""
   },
   {
     "seminar_id": "finance_seminar",
@@ -283,7 +304,8 @@
     "time_info": "Tuesdays 12:00–13:15",
     "location": "HoF E.01 / Deutsche Bank room",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/finance/seminar/finance-seminar-series/abteilungen/finance/seminar/finance-seminar-series/seminar-calendar/calendar-details/cal/event/tx_cal_phpicalendar/2025/12/16/2099.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": ""
   },
   {
     "seminar_id": "macro_seminar",
@@ -296,7 +318,8 @@
     "time_info": "Tuesdays 14:15–15:30",
     "location": "HoF E.01 / Deutsche Bank room",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/money-and-macroeconomics/abteilungen/money-and-macroeconomics/macro-seminar/calendar-details/cal/event/tx_cal_phpicalendar/2025/12/16/2114.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": ""
   },
   {
     "seminar_id": "mm_amos",
@@ -309,7 +332,8 @@
     "time_info": "Usually Wednesdays 14:15",
     "location": "RuW 4.201",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/mm/forschung/forschungskolloquien/abteilungen/mm/forschung/forschungskolloquien/amos/calendar-details-mm-seminar/cal/event/tx_cal_phpicalendar/2025/12/17/2140.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": "https://scholars.cmu.edu/7929-erina-ytsma"
   },
   {
     "seminar_id": "finance_seminar",
@@ -322,7 +346,8 @@
     "time_info": "Tuesdays 12:00–13:15",
     "location": "HoF E.01 / Deutsche Bank room",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/finance/seminar/finance-seminar-series/abteilungen/finance/seminar/finance-seminar-series/seminar-calendar/calendar-details/cal/event/tx_cal_phpicalendar/2026/01/13/2100.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": ""
   },
   {
     "seminar_id": "mm_brownbag",
@@ -335,7 +360,8 @@
     "time_info": "Thursdays 12:30–13:30",
     "location": "RuW 4.201",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/mm/forschung/forschungskolloquien/abteilungen/mm/forschung/forschungskolloquien/brown-bag-seminar/calendar-details-mm-bb/cal/event/tx_cal_phpicalendar/2026/01/15/2150.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": ""
   },
   {
     "seminar_id": "qep",
@@ -348,7 +374,8 @@
     "time_info": "",
     "location": "RuW 4.202",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/eq/seminars/abteilungen/eq/seminars/quantitative-economic-policy-seminar/calendar-details/cal/event/tx_cal_phpicalendar/2026/01/15/2125.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": ""
   },
   {
     "seminar_id": "finance_seminar",
@@ -361,7 +388,8 @@
     "time_info": "Tuesdays 12:00–13:15",
     "location": "HoF E.01 / Deutsche Bank room",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/finance/seminar/finance-seminar-series/abteilungen/finance/seminar/finance-seminar-series/seminar-calendar/calendar-details/cal/event/tx_cal_phpicalendar/2026/01/20/2101.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": ""
   },
   {
     "seminar_id": "mm_amos",
@@ -374,7 +402,8 @@
     "time_info": "Usually Wednesdays 14:15",
     "location": "RuW 4.201",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/mm/forschung/forschungskolloquien/abteilungen/mm/forschung/forschungskolloquien/amos/calendar-details-mm-seminar/cal/event/tx_cal_phpicalendar/2026/01/21/2141.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": "https://www.tilburguniversity.edu/staff/a-vossen"
   },
   {
     "seminar_id": "qep",
@@ -387,7 +416,8 @@
     "time_info": "",
     "location": "RuW 4.202",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/eq/seminars/abteilungen/eq/seminars/quantitative-economic-policy-seminar/calendar-details/cal/event/tx_cal_phpicalendar/2026/01/22/2126.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": ""
   },
   {
     "seminar_id": "finance_seminar",
@@ -400,7 +430,8 @@
     "time_info": "Tuesdays 12:00–13:15",
     "location": "HoF E.01 / Deutsche Bank room",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/finance/seminar/finance-seminar-series/abteilungen/finance/seminar/finance-seminar-series/seminar-calendar/calendar-details/cal/event/tx_cal_phpicalendar/2026/01/27/2102.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": ""
   },
   {
     "seminar_id": "macro_seminar",
@@ -413,7 +444,8 @@
     "time_info": "Tuesdays 14:15–15:30",
     "location": "HoF E.01 / Deutsche Bank room",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/money-and-macroeconomics/abteilungen/money-and-macroeconomics/macro-seminar/calendar-details/cal/event/tx_cal_phpicalendar/2026/01/27/2113.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": ""
   },
   {
     "seminar_id": "finance_brownbag",
@@ -426,7 +458,8 @@
     "time_info": "Wednesdays 14:00–15:00",
     "location": "HoF E.20 / DZ Bank room",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/finance/seminar/brown-bag/abteilungen/finance/seminar/brown-bag/calendar-details/cal/event/tx_cal_phpicalendar/2026/01/28/2119.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": ""
   },
   {
     "seminar_id": "mm_amos",
@@ -439,7 +472,8 @@
     "time_info": "Usually Wednesdays 14:15",
     "location": "RuW 4.201",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/mm/forschung/forschungskolloquien/abteilungen/mm/forschung/forschungskolloquien/amos/calendar-details-mm-seminar/cal/event/tx_cal_phpicalendar/2026/01/28/2142.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": "https://www.kcl.ac.uk/people/marie-beigelman"
   },
   {
     "seminar_id": "mm_brownbag",
@@ -452,7 +486,8 @@
     "time_info": "Thursdays 12:30–13:30",
     "location": "RuW 4.201",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/mm/forschung/forschungskolloquien/abteilungen/mm/forschung/forschungskolloquien/brown-bag-seminar/calendar-details-mm-bb/cal/event/tx_cal_phpicalendar/2026/01/29/2147.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": ""
   },
   {
     "seminar_id": "qep",
@@ -465,7 +500,8 @@
     "time_info": "",
     "location": "RuW 4.202",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/eq/seminars/abteilungen/eq/seminars/quantitative-economic-policy-seminar/calendar-details/cal/event/tx_cal_phpicalendar/2026/01/29/2127.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": ""
   },
   {
     "seminar_id": "finance_seminar",
@@ -478,7 +514,8 @@
     "time_info": "Tuesdays 12:00–13:15",
     "location": "HoF E.01 / Deutsche Bank room",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/finance/seminar/finance-seminar-series/abteilungen/finance/seminar/finance-seminar-series/seminar-calendar/calendar-details/cal/event/tx_cal_phpicalendar/2026/02/03/2103.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": ""
   },
   {
     "seminar_id": "macro_seminar",
@@ -491,7 +528,8 @@
     "time_info": "Tuesdays 14:15–15:30",
     "location": "HoF E.01 / Deutsche Bank room",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/money-and-macroeconomics/abteilungen/money-and-macroeconomics/macro-seminar/calendar-details/cal/event/tx_cal_phpicalendar/2026/02/03/2117.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": ""
   },
   {
     "seminar_id": "mm_amos",
@@ -504,7 +542,8 @@
     "time_info": "Usually Wednesdays 14:15",
     "location": "RuW 4.201",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/mm/forschung/forschungskolloquien/abteilungen/mm/forschung/forschungskolloquien/amos/calendar-details-mm-seminar/cal/event/tx_cal_phpicalendar/2026/02/04/2143.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": "https://wiso.uni-koeln.de/de/forschung/professorinnen/professorinnen-a-bis-z/prof-dr-christopher-roth"
   },
   {
     "seminar_id": "mm_brownbag",
@@ -517,7 +556,8 @@
     "time_info": "Thursdays 12:30–13:30",
     "location": "RuW 4.201",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/mm/forschung/forschungskolloquien/abteilungen/mm/forschung/forschungskolloquien/brown-bag-seminar/calendar-details-mm-bb/cal/event/tx_cal_phpicalendar/2026/02/05/2080.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": ""
   },
   {
     "seminar_id": "qep",
@@ -530,7 +570,8 @@
     "time_info": "",
     "location": "RuW 4.202",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/eq/seminars/abteilungen/eq/seminars/quantitative-economic-policy-seminar/calendar-details/cal/event/tx_cal_phpicalendar/2026/02/05/2049.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": ""
   },
   {
     "seminar_id": "finance_seminar",
@@ -543,7 +584,8 @@
     "time_info": "Tuesdays 12:00–13:15",
     "location": "HoF E.01 / Deutsche Bank room",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/finance/seminar/finance-seminar-series/abteilungen/finance/seminar/finance-seminar-series/seminar-calendar/calendar-details/cal/event/tx_cal_phpicalendar/2026/02/10/2104.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": ""
   },
   {
     "seminar_id": "macro_seminar",
@@ -556,7 +598,8 @@
     "time_info": "Tuesdays 14:15–15:30",
     "location": "HoF E.01 / Deutsche Bank room",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/money-and-macroeconomics/abteilungen/money-and-macroeconomics/macro-seminar/calendar-details/cal/event/tx_cal_phpicalendar/2026/02/10/2128.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": ""
   },
   {
     "seminar_id": "mm_brownbag",
@@ -569,6 +612,7 @@
     "time_info": "Thursdays 12:30–13:30",
     "location": "RuW 4.201",
     "details_url": "https://www.old.wiwi.uni-frankfurt.de/abteilungen/mm/forschung/forschungskolloquien/abteilungen/mm/forschung/forschungskolloquien/brown-bag-seminar/calendar-details-mm-bb/cal/event/tx_cal_phpicalendar/2026/06/11/2151.html",
-    "source": "Goethe University Frankfurt"
+    "source": "Goethe University Frankfurt",
+    "speaker_url": ""
   }
 ]

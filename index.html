@@ -224,7 +224,8 @@
       max-width: 280px;
     }
 
-    .col-title span {
+    .col-title span,
+    .col-title a {
       display: block;
       overflow-wrap: anywhere;
       white-space: normal;
@@ -232,6 +233,42 @@
 
     .col-speaker {
       max-width: 190px;
+    }
+
+    .link-inline,
+    .link-title {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: color 0.18s ease, text-decoration-color 0.18s ease;
+    }
+
+    .link-title {
+      font-weight: 600;
+    }
+
+    .link-inline::after,
+    .link-title::after {
+      content: "↗";
+      font-size: 0.7rem;
+      opacity: 0.7;
+      transform: translateY(-1px);
+    }
+
+    .link-inline:hover,
+    .link-title:hover {
+      color: #7dd3fc;
+      text-decoration: underline;
+      text-decoration-color: rgba(125, 211, 252, 0.6);
+    }
+
+    .link-inline:focus-visible,
+    .link-title:focus-visible {
+      outline: 2px solid rgba(56, 189, 248, 0.65);
+      outline-offset: 2px;
     }
 
     .btn-row {
@@ -259,6 +296,11 @@
     .btn-primary {
       border-color: rgba(56,189,248,0.8);
       background: linear-gradient(135deg, rgba(56,189,248,0.18), rgba(56,189,248,0.06));
+    }
+
+    .btn-secondary {
+      border-color: rgba(148,163,184,0.5);
+      background: linear-gradient(145deg, rgba(15,23,42,0.85), rgba(15,23,42,0.98));
     }
 
     .btn:hover {
@@ -432,6 +474,11 @@
         white-space: normal;
       }
 
+      .col-title a {
+        -webkit-line-clamp: unset;
+        white-space: normal;
+      }
+
       .btn-row {
         justify-content: flex-start;
       }
@@ -578,15 +625,40 @@
         const tdSpeaker = document.createElement("td");
         tdSpeaker.className = "col-speaker";
         tdSpeaker.dataset.label = "Speaker";
-        tdSpeaker.textContent = ev.speaker || "";
+        const speakerText = ev.speaker || "";
+        if (speakerText && ev.speaker_url) {
+          const speakerLink = document.createElement("a");
+          speakerLink.href = ev.speaker_url;
+          speakerLink.target = "_blank";
+          speakerLink.rel = "noopener noreferrer";
+          speakerLink.className = "link-inline";
+          speakerLink.textContent = speakerText;
+          speakerLink.setAttribute("aria-label", `Open ${speakerText} in a new tab`);
+          tdSpeaker.appendChild(speakerLink);
+        } else {
+          tdSpeaker.textContent = speakerText;
+        }
         tr.appendChild(tdSpeaker);
 
         const tdTitle = document.createElement("td");
         tdTitle.className = "col-title";
         tdTitle.dataset.label = "Title";
-        const titleSpan = document.createElement("span");
-        titleSpan.textContent = ev.title || "";
-        tdTitle.appendChild(titleSpan);
+        const titleText = ev.title || "";
+        const detailUrl = (ev.details_url || "").trim();
+        if (titleText && detailUrl) {
+          const titleLink = document.createElement("a");
+          titleLink.href = detailUrl;
+          titleLink.target = "_blank";
+          titleLink.rel = "noopener noreferrer";
+          titleLink.className = "link-title";
+          titleLink.textContent = titleText;
+          titleLink.setAttribute("aria-label", `View event details for ${titleText}`);
+          tdTitle.appendChild(titleLink);
+        } else {
+          const titleSpan = document.createElement("span");
+          titleSpan.textContent = titleText;
+          tdTitle.appendChild(titleSpan);
+        }
         tr.appendChild(tdTitle);
 
         const tdTime = document.createElement("td");
@@ -604,16 +676,38 @@
         const btnRow = document.createElement("div");
         btnRow.className = "btn-row";
 
-        // IMPORTANT: this is the fix – use seminar_page, not the current page
-        const seminarPageUrl = ev.seminar_page || ev.details_url;
+        const seminarPageUrl = (ev.seminar_page || "").trim();
         if (seminarPageUrl) {
           const series = document.createElement("a");
           series.href = seminarPageUrl;
           series.target = "_blank";
           series.rel = "noopener noreferrer";
           series.className = "btn btn-primary";
-          series.textContent = "Open seminar page";
+          series.textContent = "Seminar overview";
+          series.setAttribute("aria-label", "Open the seminar series overview page in a new tab");
           btnRow.appendChild(series);
+        }
+
+        if (detailUrl && detailUrl !== seminarPageUrl) {
+          const detailsBtn = document.createElement("a");
+          detailsBtn.href = detailUrl;
+          detailsBtn.target = "_blank";
+          detailsBtn.rel = "noopener noreferrer";
+          detailsBtn.className = "btn btn-secondary";
+          detailsBtn.textContent = "Event details";
+          detailsBtn.setAttribute("aria-label", "View the detailed event information in a new tab");
+          btnRow.appendChild(detailsBtn);
+        }
+
+        if (ev.speaker_url) {
+          const speakerBtn = document.createElement("a");
+          speakerBtn.href = ev.speaker_url;
+          speakerBtn.target = "_blank";
+          speakerBtn.rel = "noopener noreferrer";
+          speakerBtn.className = "btn btn-secondary";
+          speakerBtn.textContent = "Speaker page";
+          speakerBtn.setAttribute("aria-label", "Open the speaker's external profile in a new tab");
+          btnRow.appendChild(speakerBtn);
         }
 
         tdLinks.appendChild(btnRow);
