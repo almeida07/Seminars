@@ -3,7 +3,7 @@ import json
 import re
 from datetime import datetime, date
 from typing import List, Dict
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
 import requests
 from bs4 import BeautifulSoup, NavigableString, Tag
@@ -132,6 +132,30 @@ WEEKDAY_PREFIX_RE = re.compile(
     re.IGNORECASE,
 )
 
+DETAIL_CACHE: Dict[str, Dict] = {}
+
+
+def resolve_url(page_url: str, href: str) -> str:
+    if not href:
+        return page_url
+    href = href.strip()
+    if not href:
+        return page_url
+    if href.lower().startswith(("http://", "https://", "mailto:", "javascript:")):
+        return href
+
+    parsed = urlparse(page_url)
+    origin = f"{parsed.scheme}://{parsed.netloc}"
+
+    if href.startswith("/"):
+        return origin + href
+
+    # Many wiwi pages use paths like "abteilungen/..." without a leading slash
+    if href.startswith("abteilungen/"):
+        return origin + "/" + href
+
+    return urljoin(page_url, href)
+
 DATE_CANDIDATE_PATTERNS = [
     re.compile(r"\d{1,2}\.\s*[A-Za-zÄÖÜäöü]+\.?\s+\d{4}"),
     re.compile(r"\d{1,2}\s+[A-Za-zÄÖÜäöü]+\.?\s+\d{4}"),
@@ -224,6 +248,102 @@ def fetch(url: str) -> BeautifulSoup:
     return BeautifulSoup(resp.text, "html.parser")
 
 
+def _clean_label_value(text: str, label: str) -> str:
+    if not text:
+        return ""
+    text = text.replace("\xa0", " ").strip()
+    if label:
+        text = re.sub(rf"^{re.escape(label)}\s*", "", text, flags=re.IGNORECASE)
+    return text.strip()
+
+
+def _extract_time_fragment(text: str) -> str:
+    if not text:
+        return ""
+    text = text.replace("\xa0", " ")
+    m = re.findall(r"\d{1,2}:\d{2}", text)
+    if m:
+        return m[0]
+    return text.strip(" ,\u2013-")
+
+
+def scrape_wiwi_details(url: str) -> Dict:
+    if not url:
+        return {}
+    cached = DETAIL_CACHE.get(url)
+    if cached is not None:
+        return cached
+
+    result: Dict[str, str] = {}
+    try:
+        soup = fetch(url)
+    except Exception:
+        DETAIL_CACHE[url] = {}
+        return {}
+
+    container = soup.select_one("#calendar-event")
+    if not container:
+        DETAIL_CACHE[url] = {}
+        return {}
+
+    title_tag = container.select_one("h1.title")
+    if title_tag:
+        title_text = title_tag.get_text(" ", strip=True)
+        if title_text:
+            result["title"] = title_text
+
+    startdate_div = container.select_one(".startdate")
+    if startdate_div:
+        raw_date_text = _clean_label_value(startdate_div.get_text(" ", strip=True), "When:")
+        if raw_date_text:
+            result["raw_date"] = raw_date_text
+            candidate = _extract_date_candidate(raw_date_text)
+            try:
+                result["date"] = parse_date(candidate).isoformat()
+            except Exception:
+                pass
+
+    starttime_div = container.select_one(".starttime")
+    endtime_div = container.select_one(".endtime")
+    start_time = _extract_time_fragment(starttime_div.get_text(" ", strip=True)) if starttime_div else ""
+    end_time = _extract_time_fragment(endtime_div.get_text(" ", strip=True)) if endtime_div else ""
+    if start_time:
+        result["start_time"] = start_time
+    if end_time:
+        result["end_time"] = end_time
+    if start_time and end_time:
+        result["time_info"] = f"{start_time}\u2013{end_time}"
+    elif start_time:
+        result["time_info"] = start_time
+
+    location_div = container.select_one(".location")
+    if location_div:
+        location_text = _clean_label_value(location_div.get_text(" ", strip=True), "Where:")
+        if location_text:
+            result["location"] = location_text
+
+    organizer_div = container.select_one(".organizer")
+    if organizer_div:
+        organizer_text = _clean_label_value(organizer_div.get_text(" ", strip=True), "Speaker:")
+        if organizer_text:
+            result["speaker"] = organizer_text
+        link = organizer_div.find("a", href=True)
+        if link:
+            result["speaker_url"] = resolve_url(url, link["href"])
+
+    description_div = container.select_one(".description")
+    if description_div:
+        description_text = description_div.get_text("\n", strip=True)
+        if description_text:
+            result["description"] = description_text
+        html = description_div.decode_contents().strip()
+        if html:
+            result["description_html"] = html
+
+    DETAIL_CACHE[url] = result
+    return result
+
+
 def scrape_wiwi_table(cfg: Dict) -> List[Dict]:
     """Generic scraper for all old.wiwi.uni-frankfurt.de seminar tables."""
     url = cfg["page"]
@@ -254,18 +374,23 @@ def scrape_wiwi_table(cfg: Dict) -> List[Dict]:
         # Speaker
         speaker_td = tr.find("td", class_="speaker") or (tds[1] if len(tds) > 1 else None)
         speaker = speaker_td.get_text(" ", strip=True) if speaker_td else ""
+        speaker_url = ""
+        if speaker_td:
+            link = speaker_td.find("a", href=True)
+            if link:
+                speaker_url = resolve_url(url, link["href"])
 
         # Title + details link
         summary_td = tr.find("td", class_="summary") or (tds[2] if len(tds) > 2 else None)
         title = ""
-        details_url = url
+        details_url = ""
         if summary_td:
             link = summary_td.find("a")
             if link:
                 title = link.get_text(" ", strip=True)
                 href = link.get("href")
                 if href:
-                    details_url = urljoin(url, href)
+                    details_url = resolve_url(url, href)
             else:
                 title = summary_td.get_text(" ", strip=True)
 
@@ -273,18 +398,33 @@ def scrape_wiwi_table(cfg: Dict) -> List[Dict]:
             # Typically "Keine Ereignisse gefunden."
             continue
 
+        detail_data = scrape_wiwi_details(details_url) if details_url else {}
+
+        event_time_info = detail_data.get("time_info") or cfg.get("time_info", "")
+        event_location = detail_data.get("location") or cfg.get("location", "")
+        event_date = detail_data.get("date", d.isoformat())
+        event_raw_date = detail_data.get("raw_date", date_text)
+        event_title = detail_data.get("title", title)
+        event_speaker = detail_data.get("speaker", speaker)
+        event_speaker_url = detail_data.get("speaker_url", speaker_url)
+
         events.append(
             {
                 "seminar_id": cfg["id"],
                 "seminar_name": cfg["name"],
                 "seminar_page": cfg["page"],   # <- used by "Open seminar page" button
-                "title": title,
-                "speaker": speaker,
-                "date": d.isoformat(),
-                "raw_date": date_text,
-                "time_info": cfg.get("time_info", ""),
-                "location": cfg.get("location", ""),
-                "details_url": details_url,
+                "title": event_title,
+                "speaker": event_speaker,
+                "speaker_url": event_speaker_url,
+                "date": event_date,
+                "raw_date": event_raw_date,
+                "time_info": event_time_info,
+                "start_time": detail_data.get("start_time", ""),
+                "end_time": detail_data.get("end_time", ""),
+                "location": event_location,
+                "description": detail_data.get("description", ""),
+                "description_html": detail_data.get("description_html", ""),
+                "details_url": details_url or cfg["page"],
                 "source": "Goethe University Frankfurt",
             }
         )
